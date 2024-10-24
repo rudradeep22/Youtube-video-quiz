@@ -1,0 +1,13 @@
+langchain
+langchain[docarray]
+langchain_groq
+langchain_community
+langchain_huggingface
+docarray
+pydantic==1.10.8
+pytubefix 
+python-dotenv
+tiktoken 
+ruff
+pypdf
+groq
