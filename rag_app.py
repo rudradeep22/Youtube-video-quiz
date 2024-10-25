@@ -35,28 +35,39 @@ parser = StrOutputParser()
 template = [
     (
         "system",
-        "You are a question answering machine that answers questions based on the following transcription of a video. \n Transcription : {context}"
+        "You are a question answering machine that answers questions based on the following transcription of a video. \n Transcription : {context}",
     ),
-    (
-        "human",
-        "{input}"
-    )
+    ("human", "{input}"),
 ]
 prompt = ChatPromptTemplate.from_messages(template)
+
 
 # Function to split audio into chunks
 def split_audio(file_path, output_dir, segment_length=60):
     segment_pattern = os.path.join(output_dir, "chunk_%03d.m4a")
-    subprocess.run([
-        "ffmpeg",
-        "-i", file_path,
-        "-f", "segment",
-        "-segment_time", str(segment_length),
-        "-ar", "16000",
-        "-ac", "1",
-        segment_pattern
-    ], check=True)
-    return [os.path.join(output_dir, f) for f in sorted(os.listdir(output_dir)) if f.startswith("chunk_")]
+    subprocess.run(
+        [
+            "ffmpeg",
+            "-i",
+            file_path,
+            "-f",
+            "segment",
+            "-segment_time",
+            str(segment_length),
+            "-ar",
+            "16000",
+            "-ac",
+            "1",
+            segment_pattern,
+        ],
+        check=True,
+    )
+    return [
+        os.path.join(output_dir, f)
+        for f in sorted(os.listdir(output_dir))
+        if f.startswith("chunk_")
+    ]
+
 
 # Function to transcribe video
 def transcribe_video(link):
@@ -68,44 +79,54 @@ def transcribe_video(link):
         audio = youtube.streams.get_audio_only()
         file = audio.download(output_path=tmpdir)
         file_path = os.path.join(tmpdir, file)
-        
+
         # Convert audio to 16kHz and mono
         st.write("Converting audio to 16kHz and mono...")
         reduced_file_path = os.path.join(tmpdir, "reduced_audio.m4a")
-        subprocess.run([
-            "ffmpeg",
-            "-i", file_path,
-            "-ar", "16000",
-            "-ac", "1",
-            "-map", "0:a:",
-            reduced_file_path
-        ], check=True)
-        
+        subprocess.run(
+            [
+                "ffmpeg",
+                "-i",
+                file_path,
+                "-ar",
+                "16000",
+                "-ac",
+                "1",
+                "-map",
+                "0:a:",
+                reduced_file_path,
+            ],
+            check=True,
+        )
+
         # st.write("Splitting audio into chunks...")
         chunks = split_audio(reduced_file_path, tmpdir, segment_length=60)
-        
+
         # Transcribe audio chunks
         st.write("Transcribing audio chunks...")
         transcription_text = ""
         progress_bar = st.progress(0)
-        for idx, chunk_path in enumerate(tqdm(chunks, desc="Transcribing", unit="chunk")):
+        for idx, chunk_path in enumerate(
+            tqdm(chunks, desc="Transcribing", unit="chunk")
+        ):
             with open(chunk_path, "rb") as file:
                 transcription = client.audio.transcriptions.create(
                     file=(chunk_path, file.read()),
                     model="distil-whisper-large-v3-en",
                     response_format="json",
                     language="en",
-                    temperature=0.0
+                    temperature=0.0,
                 )
                 transcription_text += transcription.text + "\n"
             progress_bar.progress((idx + 1) / len(chunks))
-        
+
         # Save transcription to file
         with open("transcription.txt", "w") as f:
             f.write(transcription_text)
-        
+
         st.write("Transcription complete.")
         return transcription_text
+
 
 # Transcription section
 if VID_LINK and not os.path.exists("transcription.txt"):
@@ -140,11 +161,13 @@ if os.path.exists("transcription.txt"):
         | parser
     )
 
-    st.success("Transcription and setup complete! You can now ask questions about the video.")
+    st.success(
+        "Transcription and setup complete! You can now ask questions about the video."
+    )
     st.header("Ask questions about the video!")
     if "query" not in st.session_state:
         st.session_state.query = ""
-    query = st.text_input('Enter your question:', key="question_input")
+    query = st.text_input("Enter your question:", key="question_input")
 
     # Process the query when the user presses Enter
     if query:
