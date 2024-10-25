@@ -1,3 +1,4 @@
+
 # YouTube Video Question Answering
 
 This project allows you to perform question answering on YouTube videos by transcribing the video content and using a language model to answer questions based on the transcription.
@@ -53,15 +54,15 @@ The transcription process involves converting audio to 16kHz mono and splitting 
 
 ## Usage
 
-1. **Run the script:**
+1. **Run the Streamlit app:**
 
     ```sh
-    python rag_cli.py
+    streamlit run rag_app.py
     ```
 
 2. **Provide the YouTube video link:**
 
-    When prompted, enter the YouTube link of the video you want to transcribe and analyze. If you don't want to transcribe a new video, leave it blank.
+    When prompted, enter the YouTube link of the video you want to transcribe and analyze. 
 
 3. **Ask questions:**
 
@@ -104,3 +105,4 @@ The transcription process involves converting audio to 16kHz mono and splitting 
 - `ruff`
 - `pypdf`
 - `groq`
+- `streamlit`
